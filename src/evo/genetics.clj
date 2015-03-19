@@ -1,14 +1,15 @@
-(ns evo.genetics)
+(ns evo.genetics
+  (:require [evo.orderedset :refer [order-preserving-set]]))
 
 (def mutation-chance 15)
 (def num-participants 4)
 (def mixing-ratio (/ 4 5))
 (def distances
   "{[start_city ->  end_city]  distance}"
-  {[0 1] 25 ;; 20
+  {[0 1] 20 ;; 20
    [0 2] 42
    [0 3] 35
-   [1 0] 25 ;; 20
+   [1 0] 20 ;; 20
    [1 2] 30
    [1 3] 34
    [2 0] 42
@@ -61,13 +62,16 @@
         child2 (into b d)]
     [child1 child2]))
 
-(defn uniform-crossover [mates]
-  (let [num-swap (int (* mixing-ratio (count (first mates))))
-        swap-idxs (take num-swap (unique-random-numbers (count (first mates))))
-        ]
-    swap-idxs))
+(defn cycle-set [a b]
+  (into []
+        (into (order-preserving-set)
+              (vec (interleave a b)))))
 
-(uniform-crossover [[0 1 2 3] [2 3 1 0]])
+;; cycle crossover
+(defn cycle-crossover [[a b]]
+  (let [child1 (cycle-set a b)
+        child2 (cycle-set b a)]
+    [child1 child2]))
 
 (defn should-mutate? []
   (< (rand-int 100) mutation-chance))
@@ -83,7 +87,7 @@
 
 (defn tournament-select [population]
   ""
-  (mapv (fn [x] (let [idxs (repeatedly num-participants #(rand-int (count pop)))
+  (mapv (fn [x] (let [idxs (repeatedly num-participants #(rand-int (count population)))
                      participants (map #(population %) idxs)]
                  (first (sort-by calculate-fitness participants))))
        (range (count population))))
@@ -93,7 +97,7 @@
         vec
         tournament-select
         pair
-       (map uniform-crossover)
+       (map cycle-crossover)
        (reduce into)
        (map (fn [x] (if (should-mutate?)
                        (mutate x)
@@ -113,11 +117,7 @@
   (let [final-population (evolve max-gen gen-size)]
     (first (sort-by calculate-fitness final-population))))
 
-#_(solve 1000 100)
+#_(solve 100 6)
 
-
-(uniform-crossover [[0 2 1 3] [2 3 1 0]])
-
- (subvec [0 1 2 3] 0 (inc 1))
- (subvec [0 1 2 3] (inc 1) (count [0 1 2 3]))
+(calculate-fitness [3 2 1 0])
 
