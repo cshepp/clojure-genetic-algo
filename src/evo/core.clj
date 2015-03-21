@@ -4,7 +4,7 @@
 
 (defn main []
   (let [ch (chan)
-        sc (d/start-screen)
+        sc (d/screen)
         max-gen  100
         gen-size 100]
     (d/draw-loop ch sc)

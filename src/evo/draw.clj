@@ -2,7 +2,8 @@
   (:require [lanterna.screen :as s]))
 
 (defn start-screen []
-  (-> (s/get-screen)
-      s/start))
+  (let [sc (s/get-screen)]
+      (s/start sc)
+    sc))
 
 (defn draw-loop [ch sc])
