@@ -1,5 +1,7 @@
 (ns evo.orderedset)
 
+
+;; from https://groups.google.com/forum/#!topic/clojure/vYND1CtKf2M
 (deftype OrderPreservingSet [v m s]
   clojure.lang.IObj
     (withMeta [this md] (OrderPreservingSet. v (with-meta m md) s))
