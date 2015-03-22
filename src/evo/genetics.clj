@@ -1,6 +1,7 @@
 (ns evo.genetics
   (:require [evo.util :refer :all]
-            [evo.distances :refer [get-distance]]))
+            [evo.distances :refer [get-distance]]
+            [clojure.core.async :refer [>! go chan]]))
 
 (def num-cities 10)      ;; how many cities we have in our problem
 (def mutation-chance 25) ;; how likely it is for a mutation to occur
@@ -78,9 +79,8 @@
 ;; selection
 (defn roulette-select [population]
   "selects genomes based on fitness"
-  (let [population     (create-population 10 10)
-       roulette-wheel  (reduce #(conj %1 (+ (- 500 %2) (last %1))) [0] (map calculate-fitness population))
-       total           (last roulette-wheel)]
+  (let [roulette-wheel  (reduce #(conj %1 (+ (- 500 %2) (last %1))) [0] (map calculate-fitness population))
+        total           (last roulette-wheel)]
     (mapv (fn [x] (nth population (.indexOf roulette-wheel (first (filter #(< (rand-int total) %1) roulette-wheel)))))
           (range (count population)))))
 
@@ -89,7 +89,7 @@
   ""
   (->> (sort-by calculate-fitness population)
         vec
-        tournament-select
+        roulette-select
         pair
        (map cycle-crossover)
        (reduce into)
@@ -122,4 +122,4 @@
   (let [final-population (evolve max-gen gen-size draw-chan)]
     (calculate-fitness (first (sort-by calculate-fitness final-population)))))
 
-#_(solve 100 100)
+#_(solve 1 1 (chan))
