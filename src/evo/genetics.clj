@@ -4,7 +4,8 @@
             [clojure.core.async :refer [>! go chan]]))
 
 (def num-cities 10)      ;; how many cities we have in our problem
-(def mutation-chance 25) ;; how likely it is for a mutation to occur
+(def mutation-chance 5) ;; how likely it is for a mutation to occur
+(def fitness-multiplier 100)
 
 ;; initialize population
 (defn create-population [gen-size genome-size]
@@ -71,31 +72,41 @@
   (< (rand-int 100) mutation-chance))
 
 (defn mutate [genome]
-  "swaps two random elements in the given genome"
+  "swaps two sets of random elements in the given genome"
   (let [a (rand-int (count genome))
-        b (rand-int (count genome))]
-    (swap genome a b)))
+        b (rand-int (count genome))
+        c (rand-int (count genome))
+        d (rand-int (count genome))]
+    (swap (swap genome c d) a b)))
 
 ;; selection
 (defn roulette-select [population]
   "selects genomes based on fitness"
-  (let [roulette-wheel  (reduce #(conj %1 (+ (- 500 %2) (last %1))) [0] (map calculate-fitness population))
+  (let [roulette-wheel  (reduce #(conj %1 (+ (* (- 700 %2) fitness-multiplier) (last %1))) [0] (map calculate-fitness population))
         total           (last roulette-wheel)]
     (mapv (fn [x] (nth population (.indexOf roulette-wheel (first (filter #(< (rand-int total) %1) roulette-wheel)))))
           (range (count population)))))
+
+(defn select-elites [old new]
+  "replaces the worst 10 of the new generation
+  with the best 10 of the old generation"
+  (let [best  (take 10 (sort-by calculate-fitness old))]
+    (into (drop-last 10 new) best)))
 
 ;; single-generation cycle: select -> crossover -> mutate
 (defn next-generation [population]
   ""
   (->> (sort-by calculate-fitness population)
         vec
-        roulette-select
+        ;;roulette-select
         pair
        (map cycle-crossover)
        (reduce into)
        (map (fn [x] (if (should-mutate?)
                        (mutate x)
-                       x)))))
+                       x)))
+       (select-elites population)
+       ))
 
 ;; full evolution cycle (many generations)
 (defn evolve [max-gen gen-size draw-chan]
@@ -109,10 +120,9 @@
             best-fit (calculate-fitness (first (sort-by calculate-fitness ngen)))
             avg-fit  (float (/ (reduce + (map calculate-fitness ngen)) (count ngen)))]
         (do
-          ;;(println (str "Gen: " gen-num " -> [ " best-fit " : " avg-fit " ]"))
-          (println (str "Gen: " gen-num " -> " (prn-str ngen)))
           (go
-           (>! draw-chan (mapv calculate-fitness ngen)))
+           ;;(>! draw-chan (mapv calculate-fitness ngen)))
+           (>! draw-chan (mapv calculate-fitness (sort-by calculate-fitness ngen))))
           (recur ngen gen-num)))
       population)))
 
@@ -123,3 +133,5 @@
     (calculate-fitness (first (sort-by calculate-fitness final-population)))))
 
 #_(solve 1 1 (chan))
+#_(>! draw-chan (mapv (fn [x] (Long/parseLong (reduce #(str %1 %2) "" x))) ngen))
+#_(>! draw-chan (mapv calculate-fitness (sort-by calculate-fitness ngen)))

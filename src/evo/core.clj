@@ -5,9 +5,9 @@
 
 (defn main []
   (let [ch (chan)
-        max-gen  1
-        gen-size 100]
-    (d/init ch)
+        max-gen  150
+        gen-size 400]
+    (d/init max-gen gen-size ch)
     (g/solve max-gen gen-size ch)))
 
 #_(main)
