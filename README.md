@@ -7,7 +7,9 @@ See: http://www.codyshepp.com/articles/3-exploring-genetic-algorithms-with-cloju
 ## Usage
 
 1) Clone the repo.
+
 2) cd into the directory
+
 3) `lein run -g <generation size> -m <max generations>` or `lein run -- --help`
 
 ## License
