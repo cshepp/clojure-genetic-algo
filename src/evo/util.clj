@@ -1,5 +1,6 @@
 (ns evo.util)
 
+;; from https://clojuredocs.org/clojure.core/rand-int
 (defn unique-random-numbers [n]
   "Generates a list of unique random ints between 0 and n"
   (let [a-set (set (take n (repeatedly #(rand-int n))))]

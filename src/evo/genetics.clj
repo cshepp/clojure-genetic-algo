@@ -9,7 +9,7 @@
 
 ;; initialize population
 (defn create-population [gen-size genome-size]
-  "creates a random population of size gensize,
+  "creates a random population of size gen-size,
    with each genome of size genome-size"
   (map (fn [x] (vec (unique-random-numbers genome-size)))
        (range gen-size)))
@@ -103,10 +103,9 @@
        (map cycle-crossover)
        (reduce into)
        (map (fn [x] (if (should-mutate?)
-                       (mutate x)
-                       x)))
-       (select-elites population)
-       ))
+                        (mutate x)
+                        x)))
+       (select-elites population)))
 
 ;; full evolution cycle (many generations)
 (defn evolve [max-gen gen-size draw-chan]
@@ -135,3 +134,5 @@
 #_(solve 1 1 (chan))
 #_(>! draw-chan (mapv (fn [x] (Long/parseLong (reduce #(str %1 %2) "" x))) ngen))
 #_(>! draw-chan (mapv calculate-fitness (sort-by calculate-fitness ngen)))
+
+(find-all-cycles [0 4 3 6 2 9 5 7 1 8] [8 2 3 4 5 6 1 7 9 0])
